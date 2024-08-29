@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-// import { renderWithProviders } from '../utils/test-utils';
+import { renderWithProviders } from '../utils/test-utils';
 
-import App from '../App.jsx';
+import App from '../App';
 import { vi } from 'vitest';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
@@ -31,11 +31,14 @@ describe('App', () => {
 
   it('renders the LoginButton component for the /login route', () => {
     render(<BrowserRouter initialEntries={['/login']}><App /> </BrowserRouter>, { route: '/login' });
+    console.log(window.location.pathname);
     expect(screen.getByText('Mocked Login')).toBeInTheDocument();
   });
   
   it('renders the Dashboard component for the /dashboard route when authenticated', () => {
     render(<BrowserRouter initialEntries={['/dashboard']}><App /> </BrowserRouter>, { route: '/dashboard', auth0State: { isAuthenticated: true } });
+    console.log(window.location.pathname);
+    console.log(window.location.pathname);
     expect(screen.getByText('Mocked Dashboard')).toBeInTheDocument();
   });
   
