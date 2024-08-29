@@ -66,6 +66,7 @@ afterEach(() => {
   cleanup()
 })
 " > vitest.setup.js
+# sed -i "/globals: globals.browser,/c\ \ \ \ globals: { ...globals.browser, 'vitest/globals': true }," eslint.config.js
 
 # Create sample test file
 mkdir -p src/__tests__
@@ -82,6 +83,7 @@ test('renders learn react link', () => {
 sed -i '/"scripts": {/a \ \ \ \ "test": "vitest",' package.json
 sed -i '/"scripts": {/a \ \ \ \ "test:ui": "vitest --ui",' package.json
 sed -i '/"scripts": {/a \ \ \ \ "test:coverage": "vitest run --coverage",' package.json
+sed -i "/settings: {/a \ \ \ \ env: { 'vitest/globals': true }," eslint.config.js
 
 # Install Playwright & Initialize Playwright
 npm install -D playwright @playwright/test
