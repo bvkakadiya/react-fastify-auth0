@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { Auth0Provider, Auth0Context } from '@auth0/auth0-react'
-import store from '../store/store'
+import store from '../store/storeSetup'
 
 const defaultAuth0State = {
   isAuthenticated: true,

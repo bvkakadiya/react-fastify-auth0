@@ -559,7 +559,7 @@ const counterSlice = createSlice({
 export const { increment, decrement } = counterSlice.actions;
 
 export default counterSlice.reducer;
-" > src/store/features/counter/counterSlice.js
+" > src/store/features/counter/counterSlice.jsx
 
 echo "import { combineReducers } from '@reduxjs/toolkit';
 import counterReducer from './features/counter/counterSlice';
@@ -569,7 +569,7 @@ const rootReducer = combineReducers({
 });
 
 export default rootReducer;
-" > src/store/rootReducer.js
+" > src/store/rootReducer.jsx
 
 echo "import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './rootReducer';
@@ -579,7 +579,7 @@ const store = configureStore({
 });
 
 export default store;
-" > src/store/store.js
+" > src/store/storeSetup.jsx
 
 # Update main.jsx
 echo "import { StrictMode } from 'react'
@@ -588,7 +588,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { Auth0Provider } from '@auth0/auth0-react'
 import App from './App.jsx'
-import store from './store/store'
+import store from './store/storeSetup'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(
@@ -653,7 +653,7 @@ export default Counter;
 echo "import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import store from '../../store/store';
+import store from '../../store/storeSetup';
 import Dashboard from '../Dashboard';
 import { vi } from 'vitest';
 
@@ -722,7 +722,7 @@ import { render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { Auth0Provider, Auth0Context } from '@auth0/auth0-react'
-import store from '../store/store'
+import store from '../store/storeSetup'
 
 const defaultAuth0State = {
   isAuthenticated: true,
@@ -763,13 +763,13 @@ const renderWithProviders = (
 
 export * from '@testing-library/react'
 export { renderWithProviders }
-" > src/utils/test-utils.js
+" > src/utils/test-utils.jsx
 
 # Create unit tests for the Counter component
 echo "import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import store from '../../store/store';
+import store from '../../store/storeSetup';
 import Counter from '../Counter';
 
 describe('Counter', () => {
@@ -814,7 +814,7 @@ echo "
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import store from '../../store/store';
+import store from '../../store/storeSetup';
 import Dashboard from '../Dashboard';
 import { vi } from 'vitest';
 
