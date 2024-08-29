@@ -879,7 +879,7 @@ describe('App', () => {
   });
 
   it('renders the LoginButton component for the /login route', () => {
-    render(<BrowserRouter initialEntries={["/login"]}><App /> </BrowserRouter>, { route: '/login' });
+    render(<BrowserRouter initialEntries={['/login']}><App /> </BrowserRouter>, { route: '/login' });
     console.log(window.location.pathname);
     expect(screen.getByText('Mocked Login')).toBeInTheDocument();
   });
@@ -910,3 +910,4 @@ mv tempUI ui
 
 # Update package.json name property
 sed -i 's/"name": "tempui"/"name": "ui"/' ui/package.json
+npm install 
