@@ -907,7 +907,7 @@ cd ..
 rm -rf ui
 mv tempUI ui
 
-
 # Update package.json name property
 sed -i 's/"name": "tempui"/"name": "ui"/' ui/package.json
+cd ui
 npm install 
