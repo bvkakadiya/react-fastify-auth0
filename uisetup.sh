@@ -535,7 +535,7 @@ describe('Header', () => {
 # Adding redux store
 
 # Install Redux and React-Redux
-yarn add @reduxjs/toolkit react-redux
+npm install --save @reduxjs/toolkit react-redux
 
 # Create Redux Store
 mkdir -p src/store/features/counter

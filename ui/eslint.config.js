@@ -18,6 +18,7 @@ export default [
       },
     },
     settings: { react: { version: '18.3' } },
+    env: { 'vitest/globals': true },
     plugins: {
       react,
       'react-hooks': reactHooks,
