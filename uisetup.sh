@@ -277,7 +277,7 @@ const Header = () => {
 export default Header;" > src/components/Header.jsx
 
 # Step 9: Update App component to include Auth0 components
-mkdir -p src/components
+mkdir -p src/components/__tests__
 echo "import React from 'react';
 
 const Home = () => {
