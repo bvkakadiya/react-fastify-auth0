@@ -3,23 +3,37 @@ import path from 'path'
 import AutoLoad from '@fastify/autoload'
 import { fileURLToPath } from 'url'
 import closeWithGrace from 'close-with-grace'
+import fastifyAuth0Verify from 'fastify-auth0-verify'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const init = () => {
+export const init = () => {
   const filename = fileURLToPath(import.meta.url)
   const __dirname = path.dirname(filename)
 
   const app = Fastify({
-    logger: true,
+    logger: true
   })
   app.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
-    options: { prefix: '/api' },
+    options: { prefix: '/api' }
   })
-  
+
   app.register(AutoLoad, {
     dir: path.join(__dirname, 'plugins'),
     options: {}
   })
+
+  app.register(fastifyAuth0Verify, {
+    domain: process.env.VITE_AUTH0_DOMAIN,
+    secret: process.env.VITE_AUTH0_SECRET
+  })
+  // app.addHook('preValidation', async (request, reply) => {
+  //   app.log.info('preValidation hook authenticate')
+  //   await app.authenticate(request, reply)
+
+  // })
+  // console.log(app.authenticate, 'app.authenticate');
 
   // delay is the number of milliseconds for the graceful close to finish
   closeWithGrace(
@@ -33,7 +47,7 @@ const init = () => {
   )
   return app
 }
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === 'file://'+ process.argv[1]) {
   const app = init()
   // called directly i.e. "node app"
   app.listen({ port: 3000 }, (err) => {
@@ -41,7 +55,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log('server listening on 3000')
   })
 }
-export default async function handler(req, reply) {
+export default async function handler (req, reply) {
   const app = init()
   await app.ready()
   app.server.emit('request', req, reply)

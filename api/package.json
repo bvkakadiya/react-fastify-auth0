@@ -21,7 +21,9 @@
     "@fastify/autoload": "^5.0.0",
     "@fastify/sensible": "^5.0.0",
     "close-with-grace": "^2.1.0",
+    "dotenv": "^16.4.5",
     "fastify": "^4.26.1",
+    "fastify-auth0-verify": "^2.1.1",
     "fastify-cli": "^6.3.0",
     "fastify-plugin": "^4.0.0"
   },
