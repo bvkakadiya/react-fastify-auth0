@@ -2,7 +2,7 @@
 
 # Install necessary dependencies
 cd api
-npm install fastify-auth0-verify dotenv
+npm install fastify-auth0-verify dotenv @supabase/supabase-js
 
 # Create .env file with Auth0 credentials
 cat <<EOL > .env
@@ -13,7 +13,7 @@ AUTH0_AUDIENCE=api
 EOL
 
 # Create index.js file with Fastify server setup
-cat <<EOF > index.js
+cat <<EOL > index.js
 import Fastify from 'fastify'
 import path from 'path'
 import AutoLoad from '@fastify/autoload'
@@ -76,7 +76,7 @@ export default async function handler (req, reply) {
   await app.ready()
   app.server.emit('request', req, reply)
 }
-EOF
+EOL
 
 cat <<EOL > routes/example/index.js
 export default async function (fastify, opts) {
@@ -153,6 +153,43 @@ async function build (
 }
 
 export { build }
+EOL
+
+cat <<EOL > plugins/supabase.js
+import fp from 'fastify-plugin'
+import { createClient } from '@supabase/supabase-js'
+
+async function supabasePlugin (fastify, options) {
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+  fastify.decorate('supabase', supabase)
+
+  fastify.addHook('onClose', async (instance, done) => {
+    // Perform any necessary cleanup here
+    done()
+  })
+}
+
+export default fp(supabasePlugin)
+EOL
+
+cat <<EOL > test/plugins/supabase.test.js
+import { test } from 'node:test'
+import * as assert from 'node:assert'
+import Fastify from 'fastify'
+import supabasePlugin from '../../plugins/supabase.js'
+
+process.env.SUPABASE_URL = 'https://example.supabase.co'
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'examplekey'
+test('supabase works standalone', async (t) => {
+  const fastify = Fastify()
+  fastify.register(supabasePlugin)
+
+  await fastify.ready()
+  console.log(fastify.supabase, 'fastify.supabase')
+
+  assert.ok(fastify.supabase)
+})
 EOL
 
 echo "Fastify server setup with authentication is complete."

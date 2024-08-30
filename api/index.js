@@ -47,7 +47,7 @@ export const init = () => {
   )
   return app
 }
-if (import.meta.url === 'file://'+ process.argv[1]) {
+if (import.meta.url === 'file://' + process.argv[1]) {
   const app = init()
   // called directly i.e. "node app"
   app.listen({ port: 3000 }, (err) => {
