@@ -1,15 +1,18 @@
 #!/bin/bash
 
 # Install necessary dependencies
+npx fastify-cli generate api --esm --standardlint 
 cd api
 npm install fastify-auth0-verify dotenv @supabase/supabase-js
 
 # Create .env file with Auth0 credentials
-cat <<EOL > .env
+cat <<EOL > .env.example
 VITE_AUTH0_DOMAIN=<your-auth0-domain>
 VITE_AUTH0_CLIENT_ID=<your-client-id>
 VITE_AUTH0_SECRET=<your-client-secret>
 AUTH0_AUDIENCE=api
+SUPABASE_URL='https://<YOUR_SUPABASE_URL>.supabase.co'
+NEXT_PUBLIC_SUPABASE_ANON_KEY='<YOUR_SUPAB>'
 EOL
 
 # Create index.js file with Fastify server setup
