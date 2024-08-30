@@ -7,10 +7,11 @@ import fastifyAuth0Verify from 'fastify-auth0-verify'
 import dotenv from 'dotenv'
 dotenv.config()
 
-export const init = () => {
-  const filename = fileURLToPath(import.meta.url)
-  const __dirname = path.dirname(filename)
+const filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(filename)
 
+export const init = () => {
+  
   const app = Fastify({
     logger: true
   })
