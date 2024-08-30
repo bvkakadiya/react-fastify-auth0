@@ -16,14 +16,6 @@ vi.mock('../Profile', () => ({
   __esModule: true,
   default: () => <div>Profile</div>,
 }));
-vi.mock('antd', () => ({
-  __esModule: true,
-  Layout: {
-    Header: ({ children }) => <div>{children}</div>,
-  },
-  Menu: ({ children }) => <div>{children}</div>,
-  MenuItem: ({ children }) => <div>{children}</div>,
-}));
 
 describe('Header', () => {
   it('renders the App name', () => {
@@ -60,3 +52,4 @@ describe('Header', () => {
     expect(screen.queryByText('Login Button')).not.toBeInTheDocument();
   });
 });
+

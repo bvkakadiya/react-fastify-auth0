@@ -2,16 +2,7 @@
 cd ui
 # Step 3: Install Ant Design
 echo "Installing Ant Design..."
-npm install antd
-
-# Step 6: Add Tailwind CSS to your CSS file
-echo "Adding Tailwind CSS to your CSS file..."
-cat > src/index.css <<EOL
-@import 'antd/dist/antd.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-EOL
+npm install antd --save
 
 # Step 8: Create a sample component using Ant Design and Tailwind CSS
 echo "Creating a sample component..."
