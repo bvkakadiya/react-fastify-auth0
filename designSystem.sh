@@ -2,7 +2,7 @@
 cd ui
 # Step 3: Install Ant Design
 echo "Installing Ant Design..."
-npm install antd --save
+npm install antd @ant-design/icons --save
 
 # Step 8: Create a sample component using Ant Design and Tailwind CSS
 echo "Creating a sample component..."
@@ -228,4 +228,150 @@ describe('App', () => {
 });
 EOL
 
+# Create Dashboard.jsx
+cat <<EOL > src/components/Dashboard.jsx
+import { useAuth0 } from '@auth0/auth0-react'
+import { Layout, Avatar, Typography, Button } from 'antd'
+import { LogoutOutlined } from '@ant-design/icons'
+import Counter from './Counter'
+
+
+const Dashboard = () => {
+  const { user, logout } = useAuth0()
+
+  return (
+    <Layout className='min-h-screen'>
+      <Layout.Header className='bg-transparent flex justify-between items-center p-4'>
+      <Typography.Title level={3} className="flex-1 text-3xl font-bold mb-8">
+          <span className="text-red-500">My </span> 
+          <span className="text-green-500">Demo </span> 
+          <span className="text-blue-500">for </span> 
+          <span className="text-yellow-500">the </span> 
+          <span className="text-purple-500">Day!</span>
+        </Typography.Title>
+        <div className='flex items-center'>
+          <span className='text-lg mr-3'>{user.name}</span>
+          <Avatar src={user.picture} alt={user.name} className='mr-3' />
+          <Button
+            shape='circle'
+            icon={<LogoutOutlined className='-rotate-90 text-red-900' />}
+            onClick={() => logout({ returnTo: window.location.origin })}
+          />
+        </div>
+      </Layout.Header>
+      <Layout.Content className='p-6 bg-gray-100'>
+        <Counter />
+      </Layout.Content>
+    </Layout>
+  )
+}
+
+export default Dashboard;
+EOL
+
+# Create Dashboard.test.jsx
+cat <<EOL > src/components/__tests__/Dashboard.test.jsx
+import { vi } from 'vitest';
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { Provider } from 'react-redux';
+import store from '../../store/storeSetup';
+import Dashboard from '../Dashboard';
+
+// Mock the Counter component
+vi.mock('../Counter', () => ({
+  default: () => <div>Mocked Counter</div>,
+}));
+
+// Mock the useAuth0 hook
+vi.mock('@auth0/auth0-react', () => ({
+  useAuth0: vi.fn(),
+}));
+
+// Mock the antd components
+vi.mock('antd', () => {
+  const Layout = ({ children }) => children;
+  Layout.Header = ({ children }) => children;
+  Layout.Content = ({ children }) => children;
+  return {
+  __esModule: true,
+  Avatar: ({ src, alt }) => <img src={src} alt={alt} />,
+  Typography: {
+    Title: ({ children }) => <h1>{children}</h1>,
+  },
+  Button: ({ icon, onClick }) => <button onClick={onClick}>{icon}</button>,
+  Layout
+}});
+
+// Mock the @ant-design/icons components
+vi.mock('@ant-design/icons', () => ({
+  __esModule: true,
+  LogoutOutlined: () => <span>LogoutIcon</span>,
+}));
+
+describe('Dashboard', () => {
+  beforeEach(() => {
+    useAuth0.mockReturnValue({
+      user: {
+        name: 'John Doe',
+        picture: 'https://example.com/johndoe.jpg',
+      },
+      logout: vi.fn(),
+    });
+  });
+
+  it('renders the user information and Counter component', () => {
+    render(
+      <Provider store={store}>
+        <Dashboard />
+      </Provider>
+    );
+
+    // Check if the user's name is rendered
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+
+    // Check if the user's avatar is rendered
+    const avatar = screen.getByAltText('John Doe');
+    expect(avatar).toBeInTheDocument();
+    expect(avatar).toHaveAttribute('src', 'https://example.com/johndoe.jpg');
+
+    // Check if the Counter component is rendered
+    expect(screen.getByText('Mocked Counter')).toBeInTheDocument();
+  });
+
+  it('renders the colorful title', () => {
+    render(
+      <Provider store={store}>
+        <Dashboard />
+      </Provider>
+    );
+
+    // Check if the colorful title is rendered
+    expect(screen.getByText('My')).toBeInTheDocument();
+    expect(screen.getByText('Demo')).toBeInTheDocument();
+    expect(screen.getByText('for')).toBeInTheDocument();
+    expect(screen.getByText('the')).toBeInTheDocument();
+    expect(screen.getByText('Day!')).toBeInTheDocument();
+  });
+
+  it('calls logout function when logout button is clicked', () => {
+    const { logout } = useAuth0();
+    render(
+      <Provider store={store}>
+        <Dashboard />
+      </Provider>
+    );
+
+    // Click the logout button
+    const logoutButton = screen.getByRole('button');
+    fireEvent.click(logoutButton);
+
+    // Check if the logout function is called
+    expect(logout).toHaveBeenCalled();
+  });
+});
+EOL
+
+echo "Dashboard component and its unit tests have been set up!"
 echo "Setup complete! You can now run 'npm start' to start your React app."
