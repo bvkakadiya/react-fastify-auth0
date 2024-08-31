@@ -4,32 +4,6 @@ cd ui
 echo "Installing Ant Design..."
 npm install antd @ant-design/icons --save
 
-# Step 8: Create a sample component using Ant Design and Tailwind CSS
-echo "Creating a sample component..."
-cat > src/components/MyButton.js <<EOL
-import React from 'react';
-import { Button } from 'antd';
-
-const MyButton = () => {
-  return <Button type="primary" className="bg-blue-500">Click Me</Button>;
-};
-
-export default MyButton;
-EOL
-# unit test for mybutton 
-cat > src/components/__tests__/MyButton.test.js <<EOL
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
-import MyButton from './MyButton';
-
-test('renders Click Me button', () => {
-  render(<MyButton />);
-  const buttonElement = screen.getByText(/Click Me/i);
-  expect(buttonElement).toBeInTheDocument();
-});
-EOL
-
 # Step 9: Update the Home component using Ant Design and Tailwind CSS
 echo "Updating the Home component..."
 cat > src/components/Home.jsx <<EOL
@@ -230,10 +204,11 @@ EOL
 
 # Create Dashboard.jsx
 cat <<EOL > src/components/Dashboard.jsx
-import { useAuth0 } from '@auth0/auth0-react'
+import { useAuth0, User } from '@auth0/auth0-react'
 import { Layout, Avatar, Typography, Button } from 'antd'
 import { LogoutOutlined } from '@ant-design/icons'
 import Counter from './Counter'
+import UserList from './UserList'
 
 
 const Dashboard = () => {
@@ -261,6 +236,7 @@ const Dashboard = () => {
       </Layout.Header>
       <Layout.Content className='p-6 bg-gray-100'>
         <Counter />
+        <UserList></UserList>
       </Layout.Content>
     </Layout>
   )
@@ -282,6 +258,10 @@ import Dashboard from '../Dashboard';
 // Mock the Counter component
 vi.mock('../Counter', () => ({
   default: () => <div>Mocked Counter</div>,
+}));
+
+vi.mock('../UserList', () => ({
+  default: () => <div>Mocked UserList</div>,
 }));
 
 // Mock the useAuth0 hook
@@ -373,5 +353,299 @@ describe('Dashboard', () => {
 });
 EOL
 
+mkdir -p src/reducers/__tests__
+cat <<EOL > src/reducers/useUserReducer.jsx
+import { useReducer, useEffect, useCallback, useRef } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+
+const API_URL =  window.location.origin + '/api/users';
+
+const initialState = {
+  users: [],
+  status: 'idle',
+  error: null,
+};
+
+const userReducer = (state, action) => {
+  switch (action.type) {
+    case 'FETCH_USERS_REQUEST':
+      return { ...state, status: 'loading' };
+    case 'FETCH_USERS_SUCCESS':
+      return { ...state, status: 'succeeded', users: action.payload };
+    case 'FETCH_USERS_FAILURE':
+      return { ...state, status: 'failed', error: action.error };
+    case 'ADD_USER_SUCCESS':
+      return { ...state, users: [...state.users, action.payload] };
+    default:
+      return state;
+  }
+};
+
+const useUserReducer = () => {
+  const [state, dispatch] = useReducer(userReducer, initialState);
+  const { getAccessTokenSilently } = useAuth0();
+  const hasFetchedUsers = useRef(false);
+
+  const fetchUsers = useCallback(async () => {
+    if (hasFetchedUsers.current) return;
+    hasFetchedUsers.current = true;
+    dispatch({ type: 'FETCH_USERS_REQUEST' });
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(API_URL, {
+        headers: {
+          Authorization: \`Bearer \${token}\`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      const users = await response.json();
+      dispatch({ type: 'FETCH_USERS_SUCCESS', payload: users });
+      hasFetchedUsers.current = false
+    } catch (error) {
+      dispatch({ type: 'FETCH_USERS_FAILURE', error: error.message });
+    }
+  }, [getAccessTokenSilently]);
+
+  const createUser = useCallback(async (user) => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: \`Bearer \${token}\`,
+        },
+        body: JSON.stringify(user),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create user');
+      }
+      const addedUser = await response.json();
+      fetchUsers();
+      dispatch({ type: 'ADD_USER_SUCCESS', payload: addedUser });
+    } catch (error) {
+      console.error('Failed to add user:', error);
+    }
+  }, [getAccessTokenSilently, fetchUsers]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  return {
+    state,
+    fetchUsers,
+    createUser,
+  };
+};
+
+export default useUserReducer;
+EOL
+
+cat <<EOL > src/reducers/__tests__/useUserReducer.test.jsx
+// hooks/__tests__/useUserReducer.test.jsx
+import { render, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useAuth0 } from '@auth0/auth0-react';
+import useUserReducer from '../useUserReducer';
+
+// Mock useAuth0 hook
+vi.mock('@auth0/auth0-react', () => ({
+  useAuth0: vi.fn(),
+}));
+
+// Mock fetch API
+global.fetch = vi.fn();
+
+describe('useUserReducer', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should fetch users successfully', async () => {
+    const mockToken = 'mock-token';
+    const mockUsers = [{ id: 1, name: 'John Doe' }];
+    
+    useAuth0.mockReturnValue({
+      getAccessTokenSilently: vi.fn().mockResolvedValue(mockToken),
+    });
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockUsers,
+    });
+
+    let result;
+    function TestComponent() {
+      result = useUserReducer();
+      return null;
+    }
+
+    render(<TestComponent />);
+
+    await act(async () => {});
+
+    expect(result.state.status).toBe('succeeded');
+    expect(result.state.users).toEqual(mockUsers);
+  });
+
+  it('should handle fetch users failure', async () => {
+    const mockToken = 'mock-token';
+    const mockError = 'Failed to fetch users';
+
+    useAuth0.mockReturnValue({
+      getAccessTokenSilently: vi.fn().mockResolvedValue(mockToken),
+    });
+
+    fetch.mockResolvedValueOnce({
+      ok: false,
+    });
+
+    let result;
+    function TestComponent() {
+      result = useUserReducer();
+      return null;
+    }
+
+    render(<TestComponent />);
+
+    await act(async () => {});
+
+    expect(result.state.status).toBe('failed');
+    expect(result.state.error).toBe(mockError);
+  });
+
+  it('should add a user successfully', async () => {
+    const mockToken = 'mock-token';
+    const newUser = { id: 2, name: 'Jane Doe' };
+
+    useAuth0.mockReturnValue({
+      getAccessTokenSilently: vi.fn().mockResolvedValue(mockToken),
+    });
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => newUser,
+    });
+
+    let result;
+    function TestComponent() {
+      result = useUserReducer();
+      return null;
+    }
+
+    render(<TestComponent />);
+
+    await act(async () => {
+      await result.createUser(newUser);
+    });
+    console.log(result.state.users);
+    expect(result.state.users).toStrictEqual(newUser);
+  });
+});
+EOL
+
+cat <<EOL > src/components/UserList.jsx
+import useUserReducer from '../reducers/useUserReducer';
+
+const UserList = () => {
+  const { state, createUser } = useUserReducer();
+
+  const handleAddUser = async () => {
+    const newUser = { name: 'New User', email: 'newuser@example.com' };
+    await createUser(newUser);
+  };
+  
+  console.log(state);
+
+  return (
+    <div>
+      <h1>User List</h1>
+      {state.status === 'loading' && <div>Loading...</div>}
+      {state.status === 'failed' && <div>{state.error}</div>}
+      <ul>
+        {state.users.map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+      <button onClick={handleAddUser}>Add User</button>
+    </div>
+  );
+};
+
+export default UserList;
+EOL
+
+cat <<EOL > src/components/__tests__/UserList.test.jsx
+// __tests__/UserList.test.jsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import UserList from '../components/UserList';
+import useUserReducer from '../reducers/useUserReducer';
+
+// Mock useUserReducer hook
+vi.mock('../reducers/useUserReducer');
+
+describe('UserList', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should display loading state', () => {
+    useUserReducer.mockReturnValue({
+      state: { status: 'loading', users: [], error: null },
+      createUser: vi.fn(),
+    });
+
+    render(<UserList />);
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
+
+  it('should display error state', () => {
+    const mockError = 'Failed to fetch users';
+    useUserReducer.mockReturnValue({
+      state: { status: 'failed', users: [], error: mockError },
+      createUser: vi.fn(),
+    });
+
+    render(<UserList />);
+
+    expect(screen.getByText(mockError)).toBeInTheDocument();
+  });
+
+  it('should display users', () => {
+    const mockUsers = [{ id: 1, name: 'John Doe' }, { id: 2, name: 'Jane Doe' }];
+    useUserReducer.mockReturnValue({
+      state: { status: 'succeeded', users: mockUsers, error: null },
+      createUser: vi.fn(),
+    });
+
+    render(<UserList />);
+
+    mockUsers.forEach(user => {
+      expect(screen.getByText(user.name)).toBeInTheDocument();
+    });
+  });
+
+  it('should call createUser on button click', async () => {
+    const mockCreateUser = vi.fn();
+    useUserReducer.mockReturnValue({
+      state: { status: 'succeeded', users: [], error: null },
+      createUser: mockCreateUser,
+    });
+
+    render(<UserList />);
+
+    fireEvent.click(screen.getByText('Add User'));
+
+    await waitFor(() => {
+      expect(mockCreateUser).toHaveBeenCalledWith({ name: 'New User', email: 'newuser@example.com' });
+    });
+  });
+});
+EOL
 echo "Dashboard component and its unit tests have been set up!"
 echo "Setup complete! You can now run 'npm start' to start your React app."

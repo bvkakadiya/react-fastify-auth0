@@ -15,7 +15,7 @@ export default defineConfig({
       '*.setup.js',
     ],
     coverage: {
-      provider: 'c8',
+      provider: 'istanbul',
       reporter: ['text', 'json', 'html'],
       exclude: [
         'dist/',

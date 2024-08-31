@@ -11,6 +11,10 @@ vi.mock('../Counter', () => ({
   default: () => <div>Mocked Counter</div>,
 }));
 
+vi.mock('../UserList', () => ({
+  default: () => <div>Mocked UserList</div>,
+}));
+
 // Mock the useAuth0 hook
 vi.mock('@auth0/auth0-react', () => ({
   useAuth0: vi.fn(),

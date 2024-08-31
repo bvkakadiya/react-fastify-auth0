@@ -24,7 +24,7 @@ echo "@tailwind base;
 @tailwind utilities;" > src/index.css
 
 # Unit test setup with Vitest
-npm install -D vitest @testing-library/react @vitest/ui c8 jsdom @testing-library/dom @testing-library/jest-dom
+npm install -D vitest @testing-library/react @vitest/ui @vitest/coverage-istanbul jsdom @testing-library/dom @testing-library/jest-dom
 
 # Configure Vitest
 echo "import { defineConfig } from 'vite';
@@ -44,7 +44,7 @@ export default defineConfig({
       '*.setup.js',
     ],
     coverage: {
-      provider: 'c8',
+      provider: 'istanbul',
       reporter: ['text', 'json', 'html'],
       exclude: [
         'dist/',
@@ -56,6 +56,21 @@ export default defineConfig({
     },
   },
 });" > vitest.config.js
+
+cat <<EOL > vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) =>({
+  plugins: [react()],
+  server: {
+    proxy: mode === 'development' ? {
+      '/api': 'http://localhost:3000',
+    } : {},
+  },
+}))
+EOL
 
 # Create setup file for test
 echo "import '@testing-library/jest-dom/vitest'

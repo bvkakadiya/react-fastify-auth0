@@ -1,7 +1,8 @@
-import { useAuth0 } from '@auth0/auth0-react'
+import { useAuth0, User } from '@auth0/auth0-react'
 import { Layout, Avatar, Typography, Button } from 'antd'
 import { LogoutOutlined } from '@ant-design/icons'
 import Counter from './Counter'
+import UserList from './UserList'
 
 
 const Dashboard = () => {
@@ -29,6 +30,7 @@ const Dashboard = () => {
       </Layout.Header>
       <Layout.Content className='p-6 bg-gray-100'>
         <Counter />
+        <UserList></UserList>
       </Layout.Content>
     </Layout>
   )
