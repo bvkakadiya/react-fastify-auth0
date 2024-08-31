@@ -1,10 +1,53 @@
 #!/bin/bash
 
 # Install necessary dependencies
-npx fastify-cli generate api --esm --standardlint 
+npx fastify-cli generate api --esm --standardlint
 cd api
 npm install fastify-auth0-verify dotenv @supabase/supabase-js
-npm i -D @fastify/swagger @fastify/swagger-ui  
+npm i -D @fastify/swagger @fastify/swagger-ui nodemon
+
+cat <<EOL > package.json
+{
+  "type": "module",
+  "name": "api",
+  "version": "1.0.0",
+  "description": "This project was bootstrapped with Fastify-CLI.",
+  "main": "app.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "pretest": "standard",
+    "lint": "standard --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/autoload": "^5.0.0",
+    "@fastify/sensible": "^5.0.0",
+    "@supabase/supabase-js": "^2.45.3",
+    "close-with-grace": "^2.1.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.26.1",
+    "fastify-auth0-verify": "^2.1.1",
+    "fastify-plugin": "^4.0.0",
+    "nodemon": "^3.1.4"
+  },
+  "devDependencies": {
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/swagger-ui": "^4.1.0",
+    "c8": "^10.1.2",
+    "standard": "^17.0.0"
+  }
+}
+EOL
+
+npm install 
+
 
 # Create .env file with Auth0 credentials
 cat <<EOL > .env.example
