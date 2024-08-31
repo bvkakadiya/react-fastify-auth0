@@ -238,8 +238,8 @@ test('GET /api/users', async (t) => {
   assert.strictEqual(data[0].name, 'John Doe')
 })
 
-test('POST /api/users', async () => {
-  const fastify = buildFastify()
+test('POST /api/users', async (t) => {
+  const fastify = buildFastify(t)
   const response = await fastify.inject({
     method: 'POST',
     url: '/api/users',
@@ -250,8 +250,8 @@ test('POST /api/users', async () => {
   assert.strictEqual(data.name, 'John Doe')
 })
 
-test('GET /api/users/:id', async () => {
-  const fastify = buildFastify()
+test('GET /api/users/:id', async (t) => {
+  const fastify = buildFastify(t)
   const response = await fastify.inject({
     method: 'GET',
     url: '/api/users/1'
@@ -261,8 +261,8 @@ test('GET /api/users/:id', async () => {
   assert.strictEqual(data.name, 'John Doe')
 })
 
-test('PUT /api/users/:id', async () => {
-  const fastify = buildFastify()
+test('PUT /api/users/:id', async (t) => {
+  const fastify = buildFastify(t)
   const response = await fastify.inject({
     method: 'PUT',
     url: '/api/users/1',
@@ -273,8 +273,8 @@ test('PUT /api/users/:id', async () => {
   assert.strictEqual(data.name, 'Jane Doe')
 })
 
-test('DELETE /api/users/:id', async () => {
-  const fastify = buildFastify()
+test('DELETE /api/users/:id', async (t) => {
+  const fastify = buildFastify(t)
   const response = await fastify.inject({
     method: 'DELETE',
     url: '/api/users/1'
