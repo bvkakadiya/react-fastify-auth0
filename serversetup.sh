@@ -4,6 +4,7 @@
 npx fastify-cli generate api --esm --standardlint 
 cd api
 npm install fastify-auth0-verify dotenv @supabase/supabase-js
+npm i -D @fastify/swagger @fastify/swagger-ui  
 
 # Create .env file with Auth0 credentials
 cat <<EOL > .env.example
@@ -20,6 +21,8 @@ cat <<EOL > index.js
 import Fastify from 'fastify'
 import path from 'path'
 import AutoLoad from '@fastify/autoload'
+import fastifySwagger from '@fastify/swagger'
+import fastifySwaggerUI from '@fastify/swagger-ui'
 import { fileURLToPath } from 'url'
 import closeWithGrace from 'close-with-grace'
 import fastifyAuth0Verify from 'fastify-auth0-verify'
@@ -34,9 +37,42 @@ export const init = () => {
   const app = Fastify({
     logger: true
   })
+
+  app.register(fastifySwagger, {
+    mode: 'dynamic',
+    swagger: {
+      info: {
+        title: 'Demo API',
+        description: 'API documentation for Demo endpoints',
+        version: '1.0.0'
+      },
+      schemes: ['http'],
+      consumes: ['application/json'],
+      produces: ['application/json']
+    }
+  })
+
+  app.register(fastifySwaggerUI, {
+    uiConfig: {
+      docExpansion: 'full',
+      deepLinking: true,
+    },
+    uiHooks: {
+      onRequest: function (request, reply, next) {
+        next()
+      },
+      preHandler: function (request, reply, next) {
+        next()
+      },
+    },
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
+  })
+
   app.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
-    options: { prefix: '/api' }
+    options: { prefix: '/api' },
+    routeParams: true
   })
 
   app.register(AutoLoad, {
@@ -67,17 +103,20 @@ export const init = () => {
   )
   return app
 }
-if (import.meta.url === 'file://'+ process.argv[1]) {
+if (import.meta.url === 'file://' + process.argv[1]) {
   const app = init()
   // called directly i.e. "node app"
   app.listen({ port: 3000 }, (err) => {
     if (err) console.error(err)
     console.log('server listening on 3000')
   })
+  await app.ready()
+  app.swagger()
 }
 export default async function handler (req, reply) {
   const app = init()
   await app.ready()
+  app.swagger()
   app.server.emit('request', req, reply)
 }
 EOL
@@ -190,8 +229,6 @@ test('supabase works standalone', async (t) => {
   fastify.register(supabasePlugin)
 
   await fastify.ready()
-  console.log(fastify.supabase, 'fastify.supabase')
-
   assert.ok(fastify.supabase)
 })
 EOL

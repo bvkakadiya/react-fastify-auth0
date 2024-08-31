@@ -10,7 +10,7 @@
   "scripts": {
     "test": "node --test test/**/*.test.js",
     "start": "node index.js",
-    "dev": "node index.js",
+    "dev": "nodemon index.js",
     "pretest": "standard",
     "lint": "standard --fix"
   },
@@ -25,10 +25,12 @@
     "dotenv": "^16.4.5",
     "fastify": "^4.26.1",
     "fastify-auth0-verify": "^2.1.1",
-    "fastify-cli": "^6.3.0",
-    "fastify-plugin": "^4.0.0"
+    "fastify-plugin": "^4.0.0",
+    "nodemon": "^3.1.4"
   },
   "devDependencies": {
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/swagger-ui": "^4.1.0",
     "c8": "^10.1.2",
     "standard": "^17.0.0"
   }

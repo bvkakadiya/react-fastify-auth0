@@ -1,6 +1,8 @@
 import Fastify from 'fastify'
 import path from 'path'
 import AutoLoad from '@fastify/autoload'
+import fastifySwagger from '@fastify/swagger'
+import fastifySwaggerUI from '@fastify/swagger-ui'
 import { fileURLToPath } from 'url'
 import closeWithGrace from 'close-with-grace'
 import fastifyAuth0Verify from 'fastify-auth0-verify'
@@ -11,23 +13,54 @@ const filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(filename)
 
 export const init = () => {
-  
   const app = Fastify({
-    logger: true
+    logger: true,
   })
+
+  app.register(fastifySwagger, {
+    mode: 'dynamic',
+    swagger: {
+      info: {
+        title: 'Demo API',
+        description: 'API documentation for Demo endpoints',
+        version: '1.0.0'
+      },
+      schemes: ['http'],
+      consumes: ['application/json'],
+      produces: ['application/json']
+    }
+  })
+
+  app.register(fastifySwaggerUI, {
+    uiConfig: {
+      docExpansion: 'full',
+      deepLinking: true,
+    },
+    uiHooks: {
+      onRequest: function (request, reply, next) {
+        next()
+      },
+      preHandler: function (request, reply, next) {
+        next()
+      },
+    },
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
+  })
+
   app.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
-    options: { prefix: '/api' }
+    options: { prefix: '/api' },
+    routeParams: true,
   })
 
   app.register(AutoLoad, {
     dir: path.join(__dirname, 'plugins'),
-    options: {}
+    options: {},
   })
-
   app.register(fastifyAuth0Verify, {
     domain: process.env.VITE_AUTH0_DOMAIN,
-    secret: process.env.VITE_AUTH0_SECRET
+    secret: process.env.VITE_AUTH0_SECRET,
   })
   // app.addHook('preValidation', async (request, reply) => {
   //   app.log.info('preValidation hook authenticate')
@@ -50,14 +83,16 @@ export const init = () => {
 }
 if (import.meta.url === 'file://' + process.argv[1]) {
   const app = init()
-  // called directly i.e. "node app"
   app.listen({ port: 3000 }, (err) => {
     if (err) console.error(err)
     console.log('server listening on 3000')
   })
+  await app.ready()
+  app.swagger()
 }
-export default async function handler (req, reply) {
+export default async function handler(req, reply) {
   const app = init()
   await app.ready()
+  app.swagger()
   app.server.emit('request', req, reply)
 }

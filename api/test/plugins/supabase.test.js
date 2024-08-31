@@ -10,7 +10,6 @@ test('supabase works standalone', async (t) => {
   fastify.register(supabasePlugin)
 
   await fastify.ready()
-  console.log(fastify.supabase, 'fastify.supabase')
 
   assert.ok(fastify.supabase)
 })
