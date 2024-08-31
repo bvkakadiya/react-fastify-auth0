@@ -51,10 +51,10 @@ npm install
 
 # Create .env file with Auth0 credentials
 cat <<EOL > .env.example
-VITE_AUTH0_DOMAIN=<your-auth0-domain>
-VITE_AUTH0_CLIENT_ID=<your-client-id>
-VITE_AUTH0_SECRET=<your-client-secret>
-AUTH0_AUDIENCE=api
+VITE_AUTH0_DOMAIN= '<YOUR_AUTH0_DOMAIN>'
+VITE_AUTH0_CLIENT_ID='<YOUR_AUTH0_CLIENT_ID>'
+VITE_AUTH0_SECRET='<YOUR_AUTH0_SECRET>'
+AUTH0_AUDIENCE='api'
 SUPABASE_URL='https://<YOUR_SUPABASE_URL>.supabase.co'
 NEXT_PUBLIC_SUPABASE_ANON_KEY='<YOUR_SUPAB>'
 EOL

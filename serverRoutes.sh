@@ -281,5 +281,7 @@ test('DELETE /api/users/:id', async () => {
   })
   assert.strictEqual(response.statusCode, 204)
 })
-
 EOL
+
+npm run lint
+echo "Done setting up routes"
