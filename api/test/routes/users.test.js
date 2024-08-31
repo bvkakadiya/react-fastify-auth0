@@ -107,4 +107,3 @@ test('DELETE /api/users/:id', async () => {
   })
   assert.strictEqual(response.statusCode, 204)
 })
-
