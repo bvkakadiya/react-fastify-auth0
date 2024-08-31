@@ -14,7 +14,7 @@ const __dirname = path.dirname(filename)
 
 export const init = () => {
   const app = Fastify({
-    logger: true,
+    logger: true
   })
 
   app.register(fastifySwagger, {
@@ -34,7 +34,7 @@ export const init = () => {
   app.register(fastifySwaggerUI, {
     uiConfig: {
       docExpansion: 'full',
-      deepLinking: true,
+      deepLinking: true
     },
     uiHooks: {
       onRequest: function (request, reply, next) {
@@ -42,25 +42,25 @@ export const init = () => {
       },
       preHandler: function (request, reply, next) {
         next()
-      },
+      }
     },
     staticCSP: true,
-    transformStaticCSP: (header) => header,
+    transformStaticCSP: (header) => header
   })
 
   app.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
     options: { prefix: '/api' },
-    routeParams: true,
+    routeParams: true
   })
 
   app.register(AutoLoad, {
     dir: path.join(__dirname, 'plugins'),
-    options: {},
+    options: {}
   })
   app.register(fastifyAuth0Verify, {
     domain: process.env.VITE_AUTH0_DOMAIN,
-    secret: process.env.VITE_AUTH0_SECRET,
+    secret: process.env.VITE_AUTH0_SECRET
   })
   // app.addHook('preValidation', async (request, reply) => {
   //   app.log.info('preValidation hook authenticate')
@@ -90,7 +90,7 @@ if (import.meta.url === 'file://' + process.argv[1]) {
   await app.ready()
   app.swagger()
 }
-export default async function handler(req, reply) {
+export default async function handler (req, reply) {
   const app = init()
   await app.ready()
   app.swagger()
