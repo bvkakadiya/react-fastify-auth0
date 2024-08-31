@@ -5,6 +5,7 @@ npx fastify-cli generate api --esm --standardlint
 cd api
 npm install fastify-auth0-verify dotenv @supabase/supabase-js
 npm i -D @fastify/swagger @fastify/swagger-ui nodemon
+rm app.js
 
 cat <<EOL > package.json
 {

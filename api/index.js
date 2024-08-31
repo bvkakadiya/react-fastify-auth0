@@ -58,6 +58,7 @@ export const init = () => {
     dir: path.join(__dirname, 'plugins'),
     options: {}
   })
+
   app.register(fastifyAuth0Verify, {
     domain: process.env.VITE_AUTH0_DOMAIN,
     secret: process.env.VITE_AUTH0_SECRET
@@ -83,6 +84,7 @@ export const init = () => {
 }
 if (import.meta.url === 'file://' + process.argv[1]) {
   const app = init()
+  // called directly i.e. "node app"
   app.listen({ port: 3000 }, (err) => {
     if (err) console.error(err)
     console.log('server listening on 3000')
