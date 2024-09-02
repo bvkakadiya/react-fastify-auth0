@@ -63,7 +63,7 @@ jobs:
           args:
             # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
             # mandatory
-            -Dsonar.projectKey=bvkakadiya_react-fastify-auth0
+            -Dsonar.projectKey=bvkakadiya_fastify-serverless-github-action
             -Dsonar.organization=bvkakadiya
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
@@ -76,39 +76,37 @@ jobs:
       - run: echo "- Lint the code and run unit tests completed successfully!" >> $GITHUB_STEP_SUMMARY
   build:
     needs: [integration]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "- Build the artifact"
+    uses: ./.github/workflows/build.yml
   test-artifact:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: echo "- Simulate and test the artifact"
 
   development:
-    environment: Development
     needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "- Auto-deploy the artifact to the development environment"
+    uses: ./.github/workflows/deployment_nonprod.yml
+    with:
+      environment: Development
+    secrets: inherit
 
   staging:
-    environment: Staging
     needs: [development, test-artifact]
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "After development envirionment is deployed..."
-          echo "and after the artifact tests have passed..."
-          echo "- Auto-deploy the artifact to the staging environment"
+    uses: ./.github/workflows/deployment_nonprod.yml
+    with:
+      environment: Staging
+    secrets: inherit
 
   test-staging:
     needs: staging
     runs-on: ubuntu-latest
     steps:
-      - run: echo "- Test the staging environment"
+      - run: |
+          echo "- Test the staging environment"
+          echo "After development envirionment is deployed..."
+          echo "and after the artifact tests have passed..."
+          echo "- Auto-deploy the artifact to the staging environment"
 
   production:
     environment: Production
