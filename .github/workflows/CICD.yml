@@ -42,7 +42,7 @@ jobs:
 
       - name: Run lint for Backend
         run: |
-          cd ../api
+          cd api
           npm run lint
         #   cd ..
 
