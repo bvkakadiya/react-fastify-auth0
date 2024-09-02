@@ -187,6 +187,12 @@ jobs:
         id: get-url
         run: |
           echo "DEPLOYMENT_URL=\$DEPLOYMENT_URL" >> \$GITHUB_ENV
+          echo \$DEPLOYMENT_URL > deployment_url.txt
+      - name: Upload Deployment URL Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-url
+          path: deployment_url.txt
           echo \$DEPLOYMENT_URL
 EOL
 
@@ -224,6 +230,10 @@ env:
 on: 
   workflow_call:
   workflow_dispatch:
+#   workflow_run:
+#     workflows: ["Vercel Non Prod Deployment With test"]
+#     types:
+#       - completed
 #   push:
 #     branches-ignore:
 #       - main
@@ -232,10 +242,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-      - name : Check Deplyment URL
-        run: echo \$DEPLOYMENT_URL
+      - name: Download Deployment URL Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-url
+          path: .
+      - name: Read Deployment URL
+        id: read-url
+        run: echo "DEPLOYMENT_URL=\$(cat deployment_url.txt)" >> \$GITHUB_ENV
       - name: Install Dependencies
         run: npm install
       - name: Run Playwright E2E Tests
