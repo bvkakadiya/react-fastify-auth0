@@ -1,11 +1,11 @@
 // __tests__/UserList.test.jsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import UserList from '../components/UserList';
-import useUserReducer from '../reducers/useUserReducer';
+import UserList from '../UserList';
+import useUserReducer from '../../reducers/useUserReducer';
 
 // Mock useUserReducer hook
-vi.mock('../reducers/useUserReducer');
+vi.mock('../../reducers/useUserReducer');
 
 describe('UserList', () => {
   beforeEach(() => {
