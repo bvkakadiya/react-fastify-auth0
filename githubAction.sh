@@ -211,6 +211,41 @@ jobs:
         run: vercel deploy --prebuilt --prod --token=\${{ secrets.VERCEL_TOKEN }}
 EOL
 
+cat <<EOL > .github/workflows/e2e_test.yml
+name: Vercel Non Prod Deployment With test
+env:
+  VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
+on: 
+  workflow_call:
+  workflow_dispatch:
+#   push:
+#     branches-ignore:
+#       - main
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=\${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --token=\${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        id: deploy
+        run: vercel deploy --prebuilt --token=\${{ secrets.VERCEL_TOKEN }} --prod
+      - name: Get Preview URL
+        id: get-url
+        run: echo "PREVIEW_URL=\$(vercel inspect --token=\${{ secrets.VERCEL_TOKEN }} --output=json | jq -r '.url')" >> \$GITHUB_ENV
+      - name: Install Dependencies
+        run: npm install
+      - name: Run Playwright E2E Tests
+        run: |
+          echo \$PREVIEW_URL
+          npx playwright test --project=chromium --base-url=\${{ env.PREVIEW_URL }}
 
+EOL
 
 echo "GitHub Actions workflow file created at .github/workflows/ci.yml"
