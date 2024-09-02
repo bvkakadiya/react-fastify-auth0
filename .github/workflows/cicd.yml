@@ -1,0 +1,130 @@
+name: Continue intergration and continues deployment pipeline
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies for Frontend
+        run: |
+          cd ui
+          npm install
+        #   cd ..
+
+      - name: Install dependencies for Backend
+        run: |
+          cd api
+          npm install
+        #   cd ..
+
+      - name: Run lint for Frontend
+        run: |
+          cd ui
+          # npm run lint
+        #   cd ..
+
+      - name: Run lint for Backend
+        run: |
+          cd api
+          npm run lint
+        #   cd ..
+
+      - name: Run tests for Frontend
+        run: |
+          cd ui
+          npm run test:coverage
+      - name: Run tests for Backend
+        run: |
+          cd api
+          npm run test
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@v2.2.0
+        env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+        with:
+          # Additional arguments for the SonarScanner CLI
+          args:
+            # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
+            # mandatory
+            -Dsonar.projectKey=bvkakadiya_react-fastify-auth0
+            -Dsonar.organization=bvkakadiya
+            # Comma-separated paths to directories containing main source files.
+            #-Dsonar.sources= # optional, default is project base directory
+            # Comma-separated paths to directories containing test source files.
+            #-Dsonar.tests= # optional. For more info about Code Coverage, please refer to https://docs.sonarcloud.io/enriching/test-coverage/overview/
+            # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
+            #-Dsonar.verbose= # optional, default is false
+          # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
+          projectBaseDir: .
+      - run: echo "- Lint the code and run unit tests completed successfully!" >> $GITHUB_STEP_SUMMARY
+  build:
+    needs: [integration]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "- Build the artifact"
+  test-artifact:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "- Simulate and test the artifact" >> $GITHUB_STEP_SUMMARY
+
+  development:
+    environment: Development
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "- Auto-deploy the artifact to the development environment" >> $GITHUB_STEP_SUMMARY
+
+  staging:
+    environment: Staging
+    needs: [development, test-artifact]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "After development envirionment is deployed..."
+          echo "and after the artifact tests have passed..."
+          echo "- Auto-deploy the artifact to the staging environment" >> $GITHUB_STEP_SUMMARY
+
+  test-staging:
+    needs: staging
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "- Test the staging environment" >> $GITHUB_STEP_SUMMARY
+
+  production:
+    environment: Production
+    needs: [test-staging]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "After staging envirionment is deployed..."
+          echo "and after the staging tests have passed..."
+          echo "require a review before deploying to the production envirionment, then..."
+          echo "- Deploy the artifact to the production environment" >> $GITHUB_STEP_SUMMARY
+
+  test-production:
+    needs: [production]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "- Test the artifact in the production environment"
+      - run: echo "# Everything completed successfully!" >> $GITHUB_STEP_SUMMARY
+

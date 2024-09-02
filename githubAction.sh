@@ -1,3 +1,11 @@
+#!/bin/bash
+
+# Create the .github/workflows directory if it doesn't exist
+
+mkdir -p .github/workflows
+
+# Generate a basic workflow file for running tests and linting
+cat <<EOL > .github/workflows/cicd.yml
 name: Continue intergration and continues deployment pipeline
 on:
   workflow_dispatch:
@@ -20,7 +28,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: \${{ matrix.node-version }}
 
       - name: Install dependencies for Frontend
         run: |
@@ -57,7 +65,7 @@ jobs:
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@v2.2.0
         env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+            SONAR_TOKEN: \${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
         with:
           # Additional arguments for the SonarScanner CLI
           args:
@@ -73,7 +81,7 @@ jobs:
             #-Dsonar.verbose= # optional, default is false
           # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
           projectBaseDir: .
-      - run: echo "- Lint the code and run unit tests completed successfully!" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- Lint the code and run unit tests completed successfully!" >> \$GITHUB_STEP_SUMMARY
   build:
     needs: [integration]
     runs-on: ubuntu-latest
@@ -85,14 +93,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: echo "- Simulate and test the artifact"
+      - run: echo "- Simulate and test the artifact" >> \$GITHUB_STEP_SUMMARY
 
   development:
     environment: Development
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "- Auto-deploy the artifact to the development environment"
+      - run: echo "- Auto-deploy the artifact to the development environment" >> \$GITHUB_STEP_SUMMARY
 
   staging:
     environment: Staging
@@ -102,13 +110,13 @@ jobs:
       - run: |
           echo "After development envirionment is deployed..."
           echo "and after the artifact tests have passed..."
-          echo "- Auto-deploy the artifact to the staging environment"
+          echo "- Auto-deploy the artifact to the staging environment" >> \$GITHUB_STEP_SUMMARY
 
   test-staging:
     needs: staging
     runs-on: ubuntu-latest
     steps:
-      - run: echo "- Test the staging environment"
+      - run: echo "- Test the staging environment" >> \$GITHUB_STEP_SUMMARY
 
   production:
     environment: Production
@@ -119,11 +127,86 @@ jobs:
           echo "After staging envirionment is deployed..."
           echo "and after the staging tests have passed..."
           echo "require a review before deploying to the production envirionment, then..."
-          echo "- Deploy the artifact to the production environment"
+          echo "- Deploy the artifact to the production environment" >> \$GITHUB_STEP_SUMMARY
 
   test-production:
     needs: [production]
     runs-on: ubuntu-latest
     steps:
       - run: echo "- Test the artifact in the production environment"
-      - run: echo "# Everything completed successfully!" >> $GITHUB_STEP_SUMMARY
+      - run: echo "# Everything completed successfully!" >> \$GITHUB_STEP_SUMMARY
+
+EOL
+
+cat <<EOL > .github/workflows/build.yml
+name: Vercel Build
+env:
+  VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
+on:
+    workflow_call:
+    workflow_dispatch:
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=\${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --token=\${{ secrets.VERCEL_TOKEN }}
+EOL
+
+cat <<EOL > .github/workflows/deploy_qa.yml
+name: Vercel Non Prod Deployment
+env:
+  VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
+on:
+  push:
+    branches-ignore:
+      - main
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=\${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --token=\${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --token=\${{ secrets.VERCEL_TOKEN }}
+EOL
+
+cat <<EOL > .github/workflows/deploy_prod.yml
+name: Vercel Production Deployment
+env:
+  VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Deploy-Production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=\${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=\${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=\${{ secrets.VERCEL_TOKEN }}
+EOL
+
+
+
+echo "GitHub Actions workflow file created at .github/workflows/ci.yml"
