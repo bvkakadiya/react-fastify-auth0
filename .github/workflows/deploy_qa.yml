@@ -31,4 +31,3 @@ jobs:
         with:
           name: deployment-url
           path: deployment_url.txt
-          echo $DEPLOYMENT_URL
