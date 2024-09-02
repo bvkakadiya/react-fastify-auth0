@@ -164,10 +164,12 @@ name: Vercel Non Prod Deployment
 env:
   VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
-on:
-  push:
-    branches-ignore:
-      - main
+on: 
+  workflow_call:
+  workflow_dispatch:
+#   push:
+#     branches-ignore:
+#       - main
 jobs:
   Deploy:
     runs-on: ubuntu-latest
@@ -189,9 +191,11 @@ env:
   VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
 on:
-  push:
-    branches:
-      - main
+#   push:
+#     branches:
+#       - main
+  workflow_call:
+  workflow_dispatch:
 jobs:
   Deploy-Production:
     runs-on: ubuntu-latest
